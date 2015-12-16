@@ -69,7 +69,7 @@
  
 # multiply offset (CA model) back into prediction
  me.real=me.pot
- values(me.real)=values(me.real)*values(disp.prior)[,1]
+ values(me.real)=values(me.real)*values(disp.prior)
  values(me.real)=values(me.real)/sum(values(me.real),na.rm=T)
  
 ######################################################################
@@ -87,7 +87,7 @@
 # plot dispersal model for 1980 with known occurrences to 1980
   image(disp.prior[[1]] ,col=cols1(100),main=titles, xaxt='n', yaxt='n', bty='n',cex.main=2.2, 
   zlim=c(0,z.max), breaks=breaks)
-  tmp=data.by.year[[1]]
+  tmp=data.by.year
   coordinates(tmp)=c(2,3)
   points(tmp,col='black',pch=19,cex=.5)
 
@@ -108,7 +108,7 @@
 # plot realized distribution  from Minxent model with occurrences to 1980
  image(me.real[[1]] ,col=cols1(100),xaxt='n', yaxt='n', bty='n',main='',cex.main=2.2, 
   zlim=c(0,z.max),breaks=breaks)
-  tmp=data.by.year[[1]]
+  tmp=data.by.year
  	coordinates(tmp)=c(2,3)
  	points(tmp,col='black',pch=19,cex=.5)
  
