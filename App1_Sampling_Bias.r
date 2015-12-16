@@ -1,6 +1,6 @@
  library(maptools)
  library(raster)
- species='CEOR'
+ species='CEOR' 
  model.output='Maxent_output' # folder: all model runs go here
  final.model.output='Final_out' # folder: the directory of files used for the figure in ms
  ###############################################################################
