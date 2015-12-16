@@ -1,4 +1,5 @@
 # this is the demo version of the full code
+<<<<<<< HEAD
 
 ########################################################################
 ### Setup
@@ -7,6 +8,11 @@
   setwd("../../Merow_et_al_2016_GEB_Minxent_Examples-master/Appendix_Data/App2_Dispersal")
  
 # automatically creat places to put maxent output
+=======
+ # set your working directory, which should contain all files downloaded for this demo 
+ setwd('/Users/ctg/Minxent/App2')
+ # automatically creat places to put maxent output
+>>>>>>> e6d594f1bfa5d73e6f0b3ef8166ac851e7e11610
  if(!file.exists('Maxent_output')) {dir.create('Maxent_output')}
  if(!file.exists('Maxent_output/Default')) {dir.create('Maxent_output/Default')}
  if(!file.exists('Maxent_output/Prior')) {dir.create('Maxent_output/Prior')}
