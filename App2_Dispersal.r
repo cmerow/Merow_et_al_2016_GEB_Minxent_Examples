@@ -20,17 +20,12 @@
 ######################################################################
 ### Load in results of the dispersal model
 ######################################################################
-# load a raster brick ('disp.prior') with the predictions from another model (the dispersal model from
-# Merow et al. 2011, Am Nat).
+# load a raster ('disp.prior') with the predictions from another model (the dispersal model from
+# Merow et al. 2011, Am Nat) for the demo year (1980).
 # Note: requires 'raster' package
  (load(paste0(getwd(),'/Dispersal_Prior_Raster.rdata')))
  
-# load a list of the occurrence data split up by observation year ('data.by.year'). 
-# the first element is all points observed by 1940, 
-# the second element is all points observed by 1960, 
-# the third element is all points observed by 1980, 
-# the fourth element is all points observed by 2000,
-# the fifth element is all points observed by 2009,
+# load a list of the occurrence data for the demo year 1980 ('data.by.year'). 
  (load(paste0(getwd(),'/data_by_year.rdata')))
  
 ######################################################################
@@ -90,9 +85,9 @@
   cols1=function(x,bias=1) { colorRampPalette(c('steelblue4','steelblue1','gold','red1','red4'),bias=bias)(x)}
  
 # plot dispersal model for 1980 with known occurrences to 1980
-  image(disp.prior[[3]] ,col=cols1(100),main=titles, xaxt='n', yaxt='n', bty='n',cex.main=2.2, 
+  image(disp.prior[[1]] ,col=cols1(100),main=titles, xaxt='n', yaxt='n', bty='n',cex.main=2.2, 
   zlim=c(0,z.max), breaks=breaks)
-  tmp=data.by.year[[3]]
+  tmp=data.by.year[[1]]
   coordinates(tmp)=c(2,3)
   points(tmp,col='black',pch=19,cex=.5)
 
@@ -113,7 +108,7 @@
 # plot realized distribution  from Minxent model with occurrences to 1980
  image(me.real[[1]] ,col=cols1(100),xaxt='n', yaxt='n', bty='n',main='',cex.main=2.2, 
   zlim=c(0,z.max),breaks=breaks)
-  tmp=data.by.year[[3]]
+  tmp=data.by.year[[1]]
  	coordinates(tmp)=c(2,3)
  	points(tmp,col='black',pch=19,cex=.5)
  
