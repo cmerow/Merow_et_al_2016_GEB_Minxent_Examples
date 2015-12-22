@@ -13,7 +13,7 @@
  ## ******************************************************************** ##
  
  ## Set working directory - user system dependent
- setwd( "App3-Higher-Order-Taxon-Info/" )
+ setwd( "/Users/ctg/Dropbox/My_Papers/Merow_et_al_2016_GEB_Minxent_Examples/Appendix_Data/App6_Higher_Taxa" )
  ## ******************************************************************** ##
  ## ******************************************************************** ##
  ## Setup
@@ -30,7 +30,7 @@
  ## Define maxent.jar file location
  ## **NOTE** This needs to be changed by the user
  ## -------------------------------------------------------------------- ##
- maxent.file <- "~/Dropbox/Scripts-Programs/Maxent/maxent.jar"
+ maxent.file <- "~/Dropbox/MaxEnt/Program/maxent.jar"
  ## Set directory for environmental variables
  ## ***
  ## In this application we are using the variables used in Latimer et al. 
@@ -44,46 +44,40 @@
  ## -------------------------------------------------------------------- ##
  run.default <- paste0( "java -jar ", maxent.file, " nowarnings noprefixes ",
                          "-e ", environmental.layers, " nowarnings threads=1 ", 
-                         " nowriteclampgrid nowritemess noresponsecurves  
-                         outputformat=raw -a -z ",
+                         " nowriteclampgrid nowritemess noresponsecurves outputformat=raw -a -z ",
                          "noaskoverwrite ",
                          "nothreshold nohinge noautofeature noproduct " ) 
  ## ******************************************************************** ##
  ## FUNCTION: normalize_ascii
+ ## ensures that a raster of predicted probabilities sums to 1
  ## ******************************************************************** ##
- 
  normalize_ascii <- function( x ){
-    values( x ) <-
-      values( x ) / sum( values( x ), na.rm = TRUE )
-    
-    return( x)
-  }
+   values( x ) <-values( x ) / sum( values( x ), na.rm = TRUE )
+   return( x)
+ }
  ## ******************************************************************** ##
- ## FUNCTION: minxent
- ## Calculate minxent layer using maxent output (from run with bias
- ## layer) and prior (i.e., the bias layer)
+ ## FUNCTION: multiply.offset
+ ## Factors the offset/prior in to a prediction. By default, Maxent 
+ ## factors out the offset and for some predictions (informative offsets)
+ ## it is useful to multiple the offset back in to the prediction.
  ## ******************************************************************** ##
  
- minxent <- function( prior.asc, maxent.asc ){
-    
-    ## Multiply the prior and maxent output asciis
-    asc_with_bias <- maxent.asc
-    values( asc_with_bias ) <-
-      values( maxent.asc ) * values( prior.asc )
-    
-    ## Normalize the new layer
-    asc_with_bias <- normalize_ascii( x = asc_with_bias ) 
-    
-    ## Return the ascii layer
-    return( asc_with_bias)
-    
-  }
+ multiply.offset <- function( prior.asc, maxent.asc ){
+   ## Multiply the prior and maxent output asciis
+   asc_with_bias <- maxent.asc
+   values( asc_with_bias ) <-
+     values( maxent.asc ) * values( prior.asc )
+   ## Normalize the new layer
+   asc_with_bias <- normalize_ascii( x = asc_with_bias ) 
+   ## Return the ascii layer
+   return( asc_with_bias)
+ }
  ## ******************************************************************** ##
  ## ******************************************************************** ##
  ## Make a Maxent model for P. nana using PRECIS data
  ## ******************************************************************** ##
  ## ******************************************************************** ##
- 
+ if( !file.exists( "Maxent_output/")) dir.create( "Maxent_output/" )
  if( !file.exists( "Maxent_output/PRNANA_PRECIS" ) ) { 
   	dir.create( "Maxent_output/PRNANA_PRECIS" ) }
  ## Run the naieve maxent model using the PRECIS data
@@ -131,6 +125,15 @@
  ## Create minxent layers
  ## -------------------------------------------------------------------- ##
  
- prnana_minxent <- minxent( prior.asc = pr_rose_asc, maxent.asc = prnana_rm_bias_asc )
+ prnana_minxent <- multiply.offset( prior.asc = pr_rose_asc, maxent.asc = prnana_rm_bias_asc )
  ## Write an ascii file for the minxent layer
  writeRaster( x = prnana_minxent, filename = "prnana_minxent.asc", overwrite = TRUE )
+
+ ## ******************************************************************** ##
+ ## ******************************************************************** ##
+ ## Plot results
+ ## ******************************************************************** ##
+ ## ******************************************************************** ##
+ to.plot=stack( prnana_precis_asc, pr_rose_asc,  prnana_minxent)
+ plot(to.plot)
+ 

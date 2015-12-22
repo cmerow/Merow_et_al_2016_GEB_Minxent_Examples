@@ -6,7 +6,7 @@
  ## ******************************************************************** ##
  
  ## Set working directory - user system dependent
- setwd( "App2-Expert-Range-Maps/" )
+ setwd("/Users/ctg/Dropbox/My_Papers/Merow_et_al_2016_GEB_Minxent_Examples/Appendix_Data/App5_Expert_Maps/")
  ## ******************************************************************** ##
  ## Setup
  ## -------------------------------------------------------------------- ##
@@ -22,54 +22,46 @@
  ## Define maxent.jar file location
  ## **NOTE** This needs to be changed by the user
  ## -------------------------------------------------------------------- ##
- maxent.file <- "~/Dropbox/Scripts-Programs/Maxent/maxent.jar"
+ maxent.file <- "~/Dropbox/MaxEnt/Program/maxent.jar"
  ## Set directory for environmental variables
- ## ***
  ## In this application we are using the variables used in Latimer et al. 
  ## 2006, and other projects from this group. This include climate layers
  ## from the Schulze dataset and environmental layers derived from soil
  ## maps. In total there were 24 variables
  ## -------------------------------------------------------------------- ##
- environmental.layers <- 
-    "SA_ASCII/"
+ environmental.layers <- "SA_ASCII/"
  raster_template <- raster( "SA_ASCII/alt.asc" )
  ## Compile default maxent command
  ## -------------------------------------------------------------------- ##
  run.default <- paste0( "java -jar ", maxent.file, " nowarnings noprefixes ",
                          "-e ", environmental.layers, " nowarnings threads=1 ", 
-                         " nowriteclampgrid nowritemess noresponsecurves  
-                         outputformat=raw -a -z ",
+                         " nowriteclampgrid nowritemess noresponsecurves outputformat=raw -a -z ",
                          "noaskoverwrite ",
                          "nothreshold nohinge noautofeature noproduct " )
  ## ******************************************************************** ##
  ## FUNCTION: normalize_ascii
+ ## ensures that a raster of predicted probabilities sums to 1
  ## ******************************************************************** ##
- 
  normalize_ascii <- function( x ){
-    values( x ) <-
-      values( x ) / sum( values( x ), na.rm = TRUE )
-    
+    values( x ) <-values( x ) / sum( values( x ), na.rm = TRUE )
     return( x)
   }
  ## ******************************************************************** ##
- ## FUNCTION: minxent
- ## Calculate minxent layer using maxent output (from run with bias
- ## layer) and prior (i.e., the bias layer)
+ ## FUNCTION: multiply.offset
+ ## Factors the offset/prior in to a prediction. By default, Maxent 
+ ## factors out the offset and for some predictions (informative offsets)
+ ## it is useful to multiple the offset back in to the prediction.
  ## ******************************************************************** ##
  
- minxent <- function( prior.asc, maxent.asc ){
-    
+ multiply.offset <- function( prior.asc, maxent.asc ){
     ## Multiply the prior and maxent output asciis
     asc_with_bias <- maxent.asc
     values( asc_with_bias ) <-
       values( maxent.asc ) * values( prior.asc )
-    
     ## Normalize the new layer
     asc_with_bias <- normalize_ascii( x = asc_with_bias ) 
-    
     ## Return the ascii layer
     return( asc_with_bias)
-    
   }
  ## ******************************************************************** ##
  ## ******************************************************************** ##
@@ -84,26 +76,25 @@
  prpunc <- read.csv( "prpunc_atlas_jittered.csv" )
  ## Construct an expert range map from the Protea Atlas dataset occurence
  ## locations using an alpha hull with an alpha value of 0.5
- prpunc_atlas_ahull <- 
-    ahull( x = unique( prpunc ), alpha = 0.5 )
+ prpunc_atlas_ahull <- ahull( x = unique( prpunc ), alpha = 0.5 )
  ## Convert from ahull object to spatial polygon. For this step
  ## I am using a function submitted to the R-SIG-GEO group by
  ## Anrew Bevan.
  source( "alphahull_to_shape.R")
  prpunc_atlas_polygon <- ah2sp( x = prpunc_atlas_ahull )
  ## Rasterize the alpha hull polygon to use it as a range map
- prpunc_atlas_raster <- 
-    rasterize( prpunc_atlas_polygon, y = raster_template )
+ prpunc_atlas_raster <- rasterize( prpunc_atlas_polygon, y = raster_template )
  ## ******************************************************************** ##
  ## ******************************************************************** ##
  ## Assign probability values to range map
  ## ***
- ## Here we are assigning ROR values to the prior based on our 
+ ## Here we are assigning ROR values to the offset based on our 
  ## a priori assumptions regarding how much probability should be
  ## assigned to areas classified as occupied versus those not classified
  ## as occupied in the range map.
- ## We have chosen to assing 90% of the probability to areas classified
- ## as occupied, and 10% to other areas.
+ ## We have chosen to assigning 90% of the probability to areas classified
+ ## as occupied, and 10% to other areas, implying that the expert gets
+ ## 90% of the presences correct
  ## ******************************************************************** ##
  ## ******************************************************************** ##
  
@@ -129,7 +120,7 @@
                filename = "prpunc_atlas_prior.asc", overwrite = TRUE )
  ## ******************************************************************** ##
  ## ******************************************************************** ##
- ## Construct a naive Maxent model using the relatively sparse PRECIS
+ ## Construct a Maxent model (without offset) using the relatively sparse PRECIS
  ## dataset
  ## ***
  ## Note that this dataset is comporable to what is available via GBIF;
@@ -137,7 +128,7 @@
  ## well.
  ## ******************************************************************** ##
  ## ******************************************************************** ##
- 
+ if( !file.exists( "Maxent_output/")) dir.create( "Maxent_output/" )
  if( !file.exists( "Maxent_output/PRPUNC_PRECIS" ) ) { 
   	dir.create( "Maxent_output/PRPUNC_PRECIS" ) }
  ## Run the naieve maxent model using the PRECIS data
@@ -149,7 +140,7 @@
  prpunc_precis_asc <- normalize_ascii( prpunc_precis_asc )
  ## ******************************************************************** ##
  ## ******************************************************************** ##
- ## Construct a Maxent model for Protea punctata, using the Protea Atlas
+ ## Construct a Minxent model for Protea punctata, using the Protea Atlas
  ## data as a range map prior
  ## ******************************************************************** ##
  ## ******************************************************************** ##
@@ -166,8 +157,17 @@
  ## Normalize this ascii
  prpunc_precis_rm_bias_asc <- normalize_ascii( x = prpunc_precis_rm_bias_asc )
  ## Create Minxent layer
- prpunc_precis_minxent <- minxent( prior.asc = prpunc_atlas_prior, 
+ prpunc_precis_minxent <- multiply.offset( prior.asc = prpunc_atlas_prior, 
                                     maxent.asc = prpunc_precis_rm_bias_asc )
  ## Write an ascii file for this final layer
  writeRaster( x = prpunc_precis_minxent, 
                filename = "prpunc_minxent.asc", overwrite = TRUE )
+ 
+ ## ******************************************************************** ##
+ ## ******************************************************************** ##
+ ## Plot results
+ ## ******************************************************************** ##
+ ## ******************************************************************** ##
+ to.plot=stack(prpunc_precis_asc, prpunc_precis_minxent)
+ plot(to.plot)
+ 
