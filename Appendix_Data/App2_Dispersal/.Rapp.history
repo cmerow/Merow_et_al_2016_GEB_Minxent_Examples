@@ -1,0 +1,246 @@
+nlsncljdnslv
+install.packages(c('reshape','rjags','R2jags','MCMCpack','runjags','bayesm','vegan','ecodist','grid','boot','plotrix','Hmisc','msm','spBayes'),dep=T)#
+install.packages(c('assist','fields','BSDA','RColorBrewer'),dep=T)#
+install.packages(c('spatstat','grDevices','ks','foreign','MASS','maptools','TeachingDemos'),dep=T)#
+install.packages(c('FD','ape'),dep=T)#
+install.packages(c('MCMCglmm','arm','lme4'),dep=T)#
+#
+install.packages(c('bayesDem','bayespack','LearnBayes','MasterBayes','MCMCpack'),dep=T)#
+#
+install.packages(c('maxlike','SDMTools','flexmix','ResourceSelection'),dep=T)#
+#
+#setRepositories(ind=1:2)#
+#install.packages('rgdal',type='source')#
+install.packages('rgdal',repos="http://www.stats.ox.ac.uk/pub/RWin")#
+#
+install.packages('doBy',dep=T)#
+# for eclipse#
+install.packages(c("knitr"),dep=T)#
+install.packages(c("rj", "rj.gd"), repos="http://download.walware.de/rj-1.1")#
+install.packages("rJava")#
+#
+install.packages(c('MuMIn','ez','gplots'),dep=T) #
+install.packages('IPMpack',dep=T) # may have to get ipmpack from binary#
+#
+install.packages(c('randomForest','biomod2','gbm','mda'),dep=T)#
+install.packages(c('maxLik','subplex'),dep=T)#
+install.packages(c('xtable','dismo'),dep=T)#
+install.packages(c('hSDM'),dep=T)#
+#
+install.packages(c('MuMIn','lme4','ez'),dep=T)#
+#
+install.packages(c('rv','compositions'),dep=T)#
+#
+install.packages(c('raster','doMC','foreach'),dep=T)#
+#
+install.packages('doSNOW',dep=T)#
+# in terminal: R CMD INSTALL Downloads/hSDM_1-1.0.tar (an updated version from ghislain? this is missing)#
+#
+install.packages(c('nleqslv','distr'),dep=T) # for meteR#
+#
+install.packages("nimble", repos = "http://r-nimble.org", type = "source")#
+#
+# for gdal stuff, go here for instructions#
+# http://tlocoh.r-forge.r-project.org/mac_rgeos_rgdal.html#
+# note that i had to use sudo xcodebuild -license at the command line to accept some bs#
+#install.packages("rgeos", repos="http://R-Forge.R-project.org", type="source")#
+#
+install.packages('gdalUtils')
+#Current host information: run this bit of code before running any of these functions#Make sure you have RPostgreSQL installedlibrary(RPostgreSQL)#NCEAShost='vegbiendev.nceas.ucsb.edu'dbname='vegbien'user='bien_read'password='T0d0B!en'#
+######################Lat/Long from Species Names(s)#species here can be either a single species or a vector of speciesBIENlatlon<-function(species){  library("RPostgreSQL")  # Name the database type that will be used  drv <- dbDriver('PostgreSQL')  # establish connection with database  con <- dbConnect(drv, host=host, dbname=dbname, user=user, password = password)  # set the query  occQuery <- paste("SELECT scrubbed_species_binomial, latitude, longitude,datasource,custodial_institution_codes,collection_code FROM view_full_occurrence_individual WHERE scrubbed_species_binomial in (", paste(shQuote(species, type = "sh"),collapse = ', '), ") AND (is_cultivated = 0 OR is_cultivated IS NULL) AND is_new_world = 1 AND higher_plant_group IS NOT NULL AND (is_geovalid = 1 OR is_geovalid IS NULL) ORDER BY scrubbed_species_binomial;")#
+  query = occQuery  #print(query)  # create query to retrieve  df <- dbGetQuery(con, statement = query);#
+  dbDisconnect(con)  return(df)#
+}################################Species list from country/countries#Currently so slow as to be basically useless#Accepts single countries or vectorsBIENcountry<-function(country){  library("RPostgreSQL")  # Name the database type that will be used  drv <- dbDriver('PostgreSQL')  # establish connection with database  con <- dbConnect(drv, host=host, dbname=dbname, user=user, password = password)  # set the query  occQuery <- paste("SELECT DISTINCT country, scrubbed_species_binomial FROM view_full_occurrence_individual WHERE country in (", paste(shQuote(country, type = "sh"),collapse = ', '), ") AND (is_cultivated = 0 OR is_cultivated IS NULL) AND is_new_world = 1 AND higher_plant_group IS NOT NULL AND (is_geovalid = 1 OR is_geovalid IS NULL) ORDER BY scrubbed_species_binomial;")  #occQuery <- paste("SELECT DISTINCT country, scrubbed_species_binomial FROM view_full_occurrence_individual WHERE country in (", paste(shQuote(country, type = "sh"),collapse = ', '), ") AND (is_cultivated = 0 OR is_cu
+ltivated IS NULL) AND is_new_world = 1 AND higher_plant_group IS NOT NULL AND (is_geovalid = 1 OR is_geovalid IS NULL) ORDER BY scrubbed_species_binomial LIMIT 2;") #Limit for testing only#
+  query = occQuery  print(query)  # create query to retrieve  df <- dbGetQuery(con, statement = query);#
+  dbDisconnect(con)  return(df)#
+}############################Occurrences from Genus#Accepts a single Genus or a vector of GeneraBIENgenus<-function(genus){  library("RPostgreSQL")  # Name the database type that will be used  drv <- dbDriver('PostgreSQL')  # establish connection with database  con <- dbConnect(drv, host=host, dbname=dbname, user=user, password = password)  # set the query  occQuery <- paste("SELECT scrubbed_genus, scrubbed_species_binomial, latitude, longitude,datasource,custodial_institution_codes,collection_code FROM view_full_occurrence_individual WHERE scrubbed_genus in (", paste(shQuote(genus, type = "sh"),collapse = ', '), ") AND (is_cultivated = 0 OR is_cultivated IS NULL) AND is_new_world = 1 AND higher_plant_group IS NOT NULL AND (is_geovalid = 1 OR is_geovalid IS NULL) ORDER BY scrubbed_species_binomial;")#
+  query = occQuery  #print(query)  # create query to retrieve  df <- dbGetQuery(con, statement = query);#
+  dbDisconnect(con)  return(df)#
+}#############################Occurrences from Family#Accepts a single Family or a vector of FamiliesBIENfamily<-function(family){  library("RPostgreSQL")  # Name the database type that will be used  drv <- dbDriver('PostgreSQL')  # establish connection with database  con <- dbConnect(drv, host=host, dbname=dbname, user=user, password = password)  # set the query  occQuery <- paste("SELECT scrubbed_family, scrubbed_species_binomial, latitude, longitude,datasource,custodial_institution_codes,collection_code FROM view_full_occurrence_individual WHERE scrubbed_family in (", paste(shQuote(family, type = "sh"),collapse = ', '), ") AND (is_cultivated = 0 OR is_cultivated IS NULL) AND is_new_world = 1 AND higher_plant_group IS NOT NULL AND (is_geovalid = 1 OR is_geovalid IS NULL) ORDER BY scrubbed_species_binomial;")#
+  query = occQuery  #print(query)  # create query to retrieve  df <- dbGetQuery(con, statement = query);#
+  dbDisconnect(con)  return(df)#
+}########################Occurrences from State/Province#Accepts a single State or a vector#Insanely slowBIENstate<-function(state){  library("RPostgreSQL")  # Name the database type that will be used  drv <- dbDriver('PostgreSQL')  # establish connection with database  con <- dbConnect(drv, host=host, dbname=dbname, user=user, password = password)  # set the query  occQuery <- paste("SELECT state_province, scrubbed_species_binomial, latitude, longitude,datasource,custodial_institution_codes,collection_code FROM view_full_occurrence_individual WHERE state_province in (", paste(shQuote(state, type = "sh"),collapse = ', '), ") AND (is_cultivated = 0 OR is_cultivated IS NULL) AND is_new_world = 1 AND higher_plant_group IS NOT NULL AND (is_geovalid = 1 OR is_geovalid IS NULL) ORDER BY scrubbed_species_binomial;")#
+  query = occQuery  #print(query)  # create query to retrieve  df <- dbGetQuery(con, statement = query);#
+  dbDisconnect(con)  return(df)#
+}#############################Traits from species#Accepts a single species or a vector#
+BIEN.trait.species<-function(species){  library("RPostgreSQL")  # Name the database type that will be used  drv <- dbDriver('PostgreSQL')  # establish connection with database  con <- dbConnect(drv, host=host, dbname=dbname, user=user, password = password)  # set the query  occQuery <- paste("SELECT * FROM taxon_trait WHERE \"scientificName\" in (", paste(shQuote(species, type = "sh"),collapse = ', '), ") ORDER BY \"scientificName\";")#
+  query = occQuery  #print(query)  # create query to retrieve  df <- dbGetQuery(con, statement = query);#
+  dbDisconnect(con)  return(df)#
+}#############################Traits from trait name#Accepts a single trait or a vector#
+BIEN.trait.trait<-function(trait){  library("RPostgreSQL")  # Name the database type that will be used  drv <- dbDriver('PostgreSQL')  # establish connection with database  con <- dbConnect(drv, host=host, dbname=dbname, user=user, password = password)  # set the query  occQuery <- paste("SELECT * FROM taxon_trait WHERE \"measurementType\" in (", paste(shQuote(trait, type = "sh"),collapse = ', '), ") ORDER BY \"scientificName\";")#
+  query = occQuery  #print(query)  # create query to retrieve  df <- dbGetQuery(con, statement = query);#
+  dbDisconnect(con)  return(df)#
+}#############################This function downloads trait data for given speciesBIEN.trait.traitbyspecies<-function(trait,species){  library("RPostgreSQL")  # Name the database type that will be used  drv <- dbDriver('PostgreSQL')  # establish connection with database  con <- dbConnect(drv, host=host, dbname=dbname, user=user, password = password)  # set the query  occQuery <- paste("SELECT * FROM taxon_trait WHERE \"measurementType\" in (", paste(shQuote(trait, type = "sh"),collapse = ', '), ") AND \"scientificName\" in (", paste(shQuote(species, type = "sh"),collapse = ', '), ") ORDER BY \"scientificName\",\"measurementType\";")#
+  query = occQuery  #print(query)  # create query to retrieve  df <- dbGetQuery(con, statement = query);#
+  dbDisconnect(con)  return(df)#
+}#############################This function lists all currently available types of trait data.#This is especially useful if you want to figure out what your trait of interest is titled in this database.BIEN.trait.list<-function(){  library("RPostgreSQL")  # Name the database type that will be used  drv <- dbDriver('PostgreSQL')  # establish connection with database  con <- dbConnect(drv, host=host, dbname=dbname, user=user, password = password)  # set the query  occQuery <- paste("SELECT DISTINCT \"measurementType\",\"measurementUnit\" FROM taxon_trait ORDER BY \"measurementType\";")#
+  query = occQuery  #print(query)  # create query to retrieve  df <- dbGetQuery(con, statement = query);#
+  dbDisconnect(con)  return(df)#
+}#
+#############################EXAMPLES#Examples:BIENlatlon# a=BIENlatlon("Abies amabilis")# species_vector<-c("Abies amabilis", "Acer nigrum")# BIENlatlon(species_vector)# # # #Examples: BIENcountry# # BIENcountry("Canada")# country_vector<-c("Canada","United States")# BIENcountry(country_vector)# # #Examples: BIENgenus# # BIENgenus("Abutilon")# genus_vector<-c("Abutilon","Abronia")# BIENgenus(genus_vector)# # #Examples: BIENfamily# BIENfamily("Theaceae")# family_vector<-c("Theaceae","Ericaceae")# BIENfamily(family_vector)# # #Examples: BIENstate# BIENstate("Rhode Island")# state_vector<-c("Rhode Island","Maryland")# BIENstate(state_vector)# # #Examples:BIEN.trait.species# BIEN.trait.species("Poa annua")# species_vector<-c("Poa annua","Juncus trifidus")# BIEN.trait.species(species_vector)# # #Examples: BIEN.trait.trait# BIEN.trait.trait("Height")# trait_vector<-c("Height", "Leaf dry mass")# BIEN.trait.trait(trait_vector)# # #Examples: BIEN.trait.traitbyspecies# BIEN.
+trait.traitbyspecies(trait = "Height", species = "Carex capitata")# trait_vector<-c("Height", "Leaf dry mass")# species_vector<-c("Carex capitata","Betula nana")# BIEN.trait.traitbyspecies(trait=trait_vector,species=species_vector)# # #Examples: BIEN.trait.list# BIEN.trait.list()
+library(Hmisc)sp=read.table('/Users/ctg/Dropbox/Projects/BIEN/BIEN_R_package temp/Ranges_for_Jesse/SppListForCory.txt')sp[,1]=capitalize(as.character(sp[,1]))sp[,2]=as.character(sp[,2])
+sp=apply(sp,1,paste,collapse=' ')
+a1=BIENlatlon(sp[1:3])
+a1
+dim(a1)
+head(a1)
+a1$scrubbed_species_binomial
+head(a1)
+a1$latitude
+a1=BIENlatlon(sp)
+head(a1)
+dim(a1)
+toss=complete.cases(a1[,c('lat','lon')])
+toss=complete.cases(a1[,c('latitude','longitude')])
+toss
+keep=complete.cases(a1[,c('latitude','longitude')])
+a2=a1[keep,]
+write.csv('/Users/ctg/Dropbox/Projects/BIEN/BIEN_R_package temp/Ranges_for_Jesse/Bien_Points_From_Cory_8_21_15.csv')
+write.csv(a2,'/Users/ctg/Dropbox/Projects/BIEN/BIEN_R_package temp/Ranges_for_Jesse/Bien_Points_From_Cory_8_21_15.csv')
+dim(a2)
+head(a2)
+found.sp=unique(a2$scrubbed_species_binomial)
+found.sp
+match(found.sp,sp)
+missing.sp=sp[-match(found.sp,sp)]
+missing.sp
+write.csv(missing.sp,'/Users/ctg/Dropbox/Projects/BIEN/BIEN_R_package temp/Ranges_for_Jesse/Missing_Species_From_Cory_8_21_15.csv')
+image(NewWorld,axes=F,xlab="",ylab="",col="grey")
+library(raster)
+NewWorld = raster(paste('/Users/ctg/Documents/BIEN_models/BIENRangeModelingTACC/BackgroundRaster/woGreenland/',"background.img",sep=""))
+image(NewWorld,axes=F,xlab="",ylab="",col="grey")
+coordinates(a2)=c('longitude','latitude')
+points(a2)
+head(a2)
+a2
+NewWorld
+plot(a2)
+tables(a2$scrubbed_species_binomial)
+table(a2$scrubbed_species_binomial)
+12.55+4+1.19+4+1.19+8+5.5+13.85+4+11.75+4
+801*.575
+6*46
+4*92*.575
+7*86
+8*86
+422.92-66.03
+2398.75/12
+3150/12
+4368/12
+604.60+65+98+165+70.30+276+460.58
+604.60+65+98+165+70.30+276+460.58-592
+403.70+460.40+299.16+374.70+360.30+233.35
+2131.61/12
+77+45.69+200+260+364+177 +860
+77+45.69+200+260+364+177 +860-1162
+11*86
+?predict.glm
+?expand.gric
+?expand.grid
+expand.grid(height = seq(60, 80, 5), weight = seq(100, 300, 50),#
+            sex = c("Male","Female"))
+expand.grid(height = seq(60, 80, 5), weight = seq(100, 300, 50),#
+            sex = c("Male","Female"),KEEP.OUT.ATTRS=T)
+expand.grid(height = seq(60, 80, 5), weight = seq(100, 300, 50),#
+            sex = c("Male","Female"),KEEP.OUT.ATTRS=F)
+?fortify
+library(popbio)
+install.packages('popbio')
+library(popbio)
+??popbio
+install.packages(mra)
+install.packages('mra')
+?mra
+??mra
+citation(mra)
+citation('mra')
+library(gbt)
+install.packages('gbt')
+install.packages('gbm')
+library(gbm)
+?gbm
+citation(mra)
+citation('mra')
+?image.plot
+?image
+?meshplot
+?mesh
+??mesh
+??surf
+install.packages('ppmlasso',dep=T)
+library(ppmlasso)
+??ppmlasso
+data(BlueMountains)#
+sub.env = BlueMountains$env[BlueMountains$env$Y > 6270 & BlueMountains$env$X > 300,]#
+sub.euc = BlueMountains$eucalypt[BlueMountains$eucalypt$Y > 6270 & BlueMountains$eucalypt$X > 300,]#
+ppm.form = ~ poly(FC, TMP_MIN, TMP_MAX, RAIN_ANN, degree = 2, raw = TRUE)#
+ppm.fit  = ppmlasso(ppm.form, sp.xy = sub.euc, env.grid = sub.env, sp.scale = 1, n.fits = 20)
+head(sub.env)
+head(sub.euc)
+ppm.form
+ppm.fit
+ai.form  = ~ poly(FC, TMP_MIN, TMP_MAX, RAIN_ANN, degree = 2, raw = TRUE)#
+ai.fit   = ppmlasso(ai.form, sp.xy = sub.euc, #
+env.grid = sub.env, sp.scale = 1, family = "area.inter", #
+r = 2, availability = BlueMountains$availability, n.fits = 20)
+print(ppm.fit, out = "model")
+diagnose(ppm.fit, which = "smooth", type = "Pearson")
+pred.mu = predict(ppm.fit, newdata = sub.env)
+pred.mu
+ppm.fit
+predict.ppmlasso
+ppm.fit$formula
+?poly
+ppm.fit
+aa=model.frame(ppm.fit$formula, data = env.grid)
+aa=model.frame(ppm.fit$formula, data = sub.env)
+head(aa)
+dim(model.frame(object$formula, data = newdata))
+dim(aa)
+dim(env.sub)
+dim(sub.env)
+str(aa)
+dim(aa$poly)
+head(aa%poly)
+head(aa$poly)
+M <- 10000## expected population size at t=1EN <- 100psi <- EN / M
+T <- 50
+z <- matrix(NA, M, T)z[,1] <- rbinom(M, 1, psi)N <- rep(NA, T)    ## Population sizeN[1] <- sum(z[,1])
+s <- array(NA, c(M, 2, T))s[,,1] <- cbind(runif(M), runif(M)) ## Coordinates are similar to individual traitplot(s[z[,1]==1,,1], asp=1) ## Initial spatial distribution
+x <- matrix(NA, M, T)x[,1] <- ifelse(z[,1]==0, 0, rlnorm(M))plot(density(x[z[,1]==1,1]))  ## Initial size distribution
+alpha0 <- 0alpha1 <- 0.5alpha2 <- 1
+## Recruitment is density dependent. Could be local instead of globalgamma0 <- 2gamma1 <- -0.04 # Global effect of population size. Could have a local effect
+## Dispersal (simple Gaussian model) depends on size.sigma0 <- -1sigma1 <- -0.1## Dynamics
+head(x)
+head(s)
+s
+dim(s)
+?rnorm
+## Super-population size - must be much larger than the number of individuals ever aliveM <- 10000## expected population size at t=1EN <- 100psi <- EN / M## number of yearsT <- 50## Binary matrix indicating "alive state" of each individual.z <- matrix(NA, M, T)z[,1] <- rbinom(M, 1, psi)N <- rep(NA, T)    ## Population sizeN[1] <- sum(z[,1])#
+## Spatial location## Could be modeled using any spatial point process.## Here, assume that individuals are uniformly distributed in space at t=1.s <- array(NA, c(M, 2, T))s[,,1] <- cbind(runif(M), runif(M)) ## Coordinates are similar to individual traitplot(s[z[,1]==1,,1], asp=1) ## Initial spatial distribution## Initial size distributionx <- matrix(NA, M, T)x[,1] <- ifelse(z[,1]==0, 0, rlnorm(M))plot(density(x[z[,1]==1,1]))  ## Initial size distribution#
+## Survival depends on size and location.alpha0 <- 0alpha1 <- 0.5alpha2 <- 1#
+## Recruitment is density dependent. Could be local instead of globalgamma0 <- 2gamma1 <- -0.04 # Global effect of population size. Could have a local effect#
+## Dispersal (simple Gaussian model) depends on size.sigma0 <- -1sigma1 <- -0.1## Dynamicsfor(t in 2:T) {    sigma <- exp(sigma0 + sigma1*x[,t-1]) # dispersal depends on size    s[,,t] <- cbind(rnorm(M, s[,1,t-1], sigma), rnorm(M, s[,2,t-1], sigma)) # Dispersal    phi <- plogis(alpha0 + alpha1*x[,t-1] +                  alpha2*s[,2,t-1]) # survival increases with latitude    a <- rowSums(z[,1:(t-1),drop=FALSE]) == 0 ## Individuals available to be recruited    A <- sum(a) ## Total number of individuals available to be recruited    if(A < 1)        stop("Set M higher")    gamma.U <- exp(gamma0 + gamma1*N[t-1])*N[t-1]    ER <- sum(gamma.U) # Expected number of recruits    gamma <- ER / A    # If alive, survive with prob phi. If not yet alive, recruit with prob gamma    mu <- z[,t-1]*phi + a*gamma    z[,t] <- rbinom(M, 1, mu)    x[,t] <- ifelse(z[,t]==0, 0, x[,t-1]+rlnorm(M, -3, 0.1)) # Stupid growth model    N[t] <- sum(z[,t])}#
+## Abundance over timeplot(N, type="o") #, ylim=c(0, 500))
+library(lattice)outT <- data.frame(size=as.integer(x), year=factor(rep(1:T, each=M)),                    alive=as.integer(z), easting=as.numeric(s[,1,]),                    northing=as.numeric(s[,2,]))outT <- outT[outT$alive>0,]
+densityplot(~ size | year, outT, subset=year %in% 1:36, as.table=TRUE)
+plot(with(outT, tapply(size, year, mean)),     ylab="Size")
+xyplot(northing ~ easting | year, outT, subset=year %in% 1:36, as.table=TRUE)
+4*40*14
+1200*9
+10800+5300
+help(Startup)
+options()
+ls()
+list.files()
+setwd("~/Dropbox/My_Papers/Merow_et_al_2016_GEB_Minxent_Examples/Appendix_Data/App2_Dispersal")
+if(!file.exists('Maxent_output')) {dir.create('Maxent_output')} if(!file.exists('Maxent_output/Default')) {dir.create('Maxent_output/Default')} if(!file.exists('Maxent_output/Prior')) {dir.create('Maxent_output/Prior')}#
+# set where yout maxent jar file is  maxent.location='../../maxent.jar'#
+#load necessary package for plotting  library(fields)#
+######################################################################### Load in results of the dispersal model####################################################################### load a raster ('disp.prior') with the predictions from another model (the dispersal model from# Merow et al. 2011, Am Nat) for the demo year (1980).# Note: requires 'raster' package (load(paste0(getwd(),'/Dispersal_Prior_Raster.rdata')))#
+# load a list of the occurrence data for the demo year 1980 ('data.by.year').  (load(paste0(getwd(),'/data_by_year.rdata')))
+run.default=paste0('java -jar ',maxent.location, ' nowarnings noprefixes -e NE_environmental_grids     nowarnings  threads=3 testsamplesfile=CEOR_pres_All.csv nowriteclampgrid nowritemess     noaskoverwrite -q -p -h nothreshold noautofeature noresponsecurves outputformat=raw -a -z')#
+#runs model for 1980 only for demonstration system(paste(run.default,'-o Maxent_output/Default -s ceor_pres1980.csv'))
+system(paste(run.default,'-o Maxent_output/Default -s ceor_pres1980.csv'))

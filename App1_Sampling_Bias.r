@@ -9,26 +9,25 @@ final.model.output='Final_out' # folder: the directory of files used for the fig
 # normalization function; ensures predicted probabilities sum to 1. 
 norm=function(surf){ surf/sum(surf,na.rm=T)}
 # the following must be setup up on your own computer
-wd='/Users/mlammens/Dropbox/Projects/Maxent-Priors/Merow_et_al_2016_GEB_Minxent_Examples/Appendix_Data/App1_Sampling_Bias/'
-# set where yout maxent jar file is
-maxent.location='/Users/mlammens/Dropbox/Scripts-Programs/Maxent/maxent.jar'
+wd='/Users/ctg/Dropbox/My_Papers/Merow_et_al_2016_GEB_Minxent_Examples/Appendix_Data/App1_Sampling_Bias'
 setwd(wd)
+# set where yout maxent jar file is
+maxent.location='/Users/ctg/Dropbox/MaxEnt/Program/maxent.jar'
 # automatically create places to put maxent output
 if(!file.exists(model.output)) {dir.create(model.output)}
 # settings that apply to all models below, which will be supplied to the maxent software
-all.models=' nowarnings noprefixes responsecurves jackknife outputformat=raw removeduplicates noaskoverwrite -a -z threads=3 replicates=5 nothreshold nohinge noautofeature '
+all.models=' nowarnings noprefixes responsecurves jackknife outputformat=raw noaskoverwrite -a -z threads=3 replicates=5 nothreshold nohinge noautofeature '
 ###############################################################################
 ## Sampling bias models
 ###############################################################################
 ## In this section we build two models for sampling bias based on anthropogenic factors.
 ## target group sampling bias based on anthropogenic predictors for IPANE data (New England)
-#Cory-- need to retain duplicates here, so "all.models" won't work
-bias_TG_IPANE=paste0('java -jar ',maxent.location, all.models,' -N bio3 -N bio4 -N bio5 -N bio12 ')
+bias_TG_IPANE=paste0('java -jar ',maxent.location, all.models,'noremoveduplicates -N bio3 -N bio4 -N bio5 -N bio12 ')
 output=paste0(wd,'/',model.output,'/IPANE_TG_bias')
 if(!file.exists(output)) {dir.create(output)}
 environmental=paste0(wd,'/NE_ASCII')
 samples=paste0(wd,'/Bias_IPANE_allPoints.csv')
-system(paste0(bias_TG_IPANE,'outputdirectory=',output,' environmentallayers=',
+system(paste0(bias_TG_IPANE,' outputdirectory=',output,' environmentallayers=',
               environmental,' samplesfile=',samples))
 ## note that you'll see some errors from points missing evnironmental data
 
@@ -37,7 +36,8 @@ system(paste0(bias_TG_IPANE,'outputdirectory=',output,' environmentallayers=',
 ################################################################################
 # =========================================================================
 ## run MaxEnt for IPANE dataset with no sampling bias
-NE_noBias_C=paste0('java -jar ',maxent.location, all.models, ' -N pop_max -N roads_max ')
+species='CEOR'
+NE_noBias_C=paste0('java -jar ',maxent.location, all.models, ' removeduplicates -N pop_max -N roads_max ')
 output=paste0(wd,'/',model.output,'/',species,'_NE_noBias')
 if(!file.exists(output)) {dir.create(output)}
 environmental=paste0(wd,'/NE_ASCII')
@@ -46,7 +46,7 @@ system(paste0(NE_noBias_C,'outputdirectory=',output,' environmentallayers=',
               environmental,' samplesfile=',samples))
 # =========================================================================
 ## run MaxEnt for IPANE dataset with Target group sampling bias
-NE_TGbias_C=paste0('java -jar ',maxent.location, all.models,' -N pop_max -N roads_max biastype=3 ')
+NE_TGbias_C=paste0('java -jar ',maxent.location, all.models,' removeduplicates -N pop_max -N roads_max biastype=3 ')
 output=paste0(wd,'/',model.output,'/',species,'_NE_withTGbias')
 if(!file.exists(output)) {dir.create(output)}
 environmental=paste0(wd,'/NE_ASCII')
